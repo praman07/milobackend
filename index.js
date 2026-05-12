@@ -11,10 +11,10 @@ app.use(express.json());
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  pingTimeout: 120000,
-  pingInterval: 30000,
+  pingTimeout: 60000,
+  pingInterval: 25000,
   cors: {
-    origin: true,
+    origin: ["https://milo-frontend.vercel.app", "http://localhost:3000", "http://127.0.0.1:3000"], // Add your actual Vercel URL here
     methods: ["GET", "POST"],
     credentials: true
   }
