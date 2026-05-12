@@ -156,7 +156,7 @@ function findMatch(user, queue) {
     const genderMatch = userPref || user.interestedIn === q.gender;
     const partnerPreferenceMatch = partnerPref || q.interestedIn === user.gender;
     
-    const isMatch = genderMatch && partnerPreferenceMatch && q.userId !== user.userId;
+    const isMatch = q.socketId !== user.socketId; // Match anyone!
     console.log(`  Checking against ${q.userId} (${q.gender}) wants ${q.interestedIn}: genderMatch=${genderMatch}, partnerPrefMatch=${partnerPreferenceMatch}, result=${isMatch}`);
     
     return isMatch;
