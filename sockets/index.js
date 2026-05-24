@@ -240,6 +240,13 @@ module.exports = (io, socket, users) => {
     }
   });
 
+  socket.on('video-flipped', ({ to, isFlipped }) => {
+    const targetSocketId = users.get(to);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('video-flipped', { from: socket.userId, isFlipped });
+    }
+  });
+
   // 4. Disconnect Logic
   socket.on('disconnect', async () => {
     const userId = socket.userId;
