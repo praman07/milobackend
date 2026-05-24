@@ -12,8 +12,9 @@ const findMatch = async (userId, socketId, gender, interestedIn, previousPartner
   localMatches.delete(userId); // Clear any old active match
 
   // Check if there is a Duo party waiting for a stranger
-  if (localDuoQueue.length > 0) {
-    const duo = localDuoQueue.shift();
+  const duoIndex = localDuoQueue.findIndex(d => !d.members.some(m => m.userId === userId));
+  if (duoIndex !== -1) {
+    const duo = localDuoQueue.splice(duoIndex, 1)[0];
     
     // Map active matches
     localMatches.set(userId, duo.members.map(m => m.userId));
@@ -90,7 +91,8 @@ const findMatch = async (userId, socketId, gender, interestedIn, previousPartner
 };
 
 const findMatchForDuo = async (duoToken, leaderId, members) => {
-  const strangerIndex = localQueue.findIndex(q => q.userId !== leaderId);
+  const memberIds = members.map(m => m.userId);
+  const strangerIndex = localQueue.findIndex(q => !memberIds.includes(q.userId));
 
   if (strangerIndex !== -1) {
     const stranger = localQueue.splice(strangerIndex, 1)[0];

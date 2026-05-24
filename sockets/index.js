@@ -76,6 +76,9 @@ module.exports = (io, socket, users) => {
     socket.userId = userId;
     users.set(userId, socket.id);
 
+    // Cancel any solo search
+    matchmaker.cancelSearch(userId);
+
     let room = duoRooms.get(duoToken);
     if (!room) {
       room = { leaderId: userId, members: [] };
