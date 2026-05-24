@@ -240,10 +240,11 @@ module.exports = (io, socket, users) => {
     }
   });
 
-  socket.on('video-flipped', ({ to, isFlipped }) => {
+  // 3.9 Video Flip Sync
+  socket.on('video-flip', ({ to, isMirrored }) => {
     const targetSocketId = users.get(to);
     if (targetSocketId) {
-      io.to(targetSocketId).emit('video-flipped', { from: socket.userId, isFlipped });
+      io.to(targetSocketId).emit('video-flip', { from: socket.userId, isMirrored });
     }
   });
 
