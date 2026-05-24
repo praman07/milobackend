@@ -218,6 +218,28 @@ module.exports = (io, socket, users) => {
     }
   });
 
+  // 3.7 Follow Requests in Chat
+  socket.on('follow-request', ({ to, senderName }) => {
+    const targetSocketId = users.get(to);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('follow-request', { from: socket.userId, senderName });
+    }
+  });
+
+  socket.on('follow-response', ({ to, accepted }) => {
+    const targetSocketId = users.get(to);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('follow-response', { from: socket.userId, accepted });
+    }
+  });
+
+  socket.on('unfollow', ({ to }) => {
+    const targetSocketId = users.get(to);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('unfollow', { from: socket.userId });
+    }
+  });
+
   // 4. Disconnect Logic
   socket.on('disconnect', async () => {
     const userId = socket.userId;
