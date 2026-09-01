@@ -90,7 +90,7 @@ app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile',
 
 app.get(
   '/api/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: 'http://localhost:3000/login?code=auth_denied' }),
+  passport.authenticate('google', { failureRedirect: `${process.env.CLIENT_URL || 'http://localhost:3000'}/login?code=auth_denied` }),
   (req, res) => {
     const token = jwt.sign(
       { user: req.user },
@@ -104,7 +104,8 @@ app.get(
       path: '/',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
-    res.redirect(`http://localhost:3000/auth/success?token=${token}&userId=${req.user.id}`);
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    res.redirect(`${clientUrl}/auth/success?token=${token}&userId=${req.user.id}`);
   }
 );
 
