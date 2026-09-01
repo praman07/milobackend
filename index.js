@@ -6,7 +6,25 @@ require('dotenv').config();
 
 const socketHandler = require('./sockets');
 
+const session = require('express-session');
+const passport = require('./config/passport');
+const jwt = require('jsonwebtoken');
+
 const app = express();
+
+// Session & Passport Initialization
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'dev_session_secret_123',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: process.env.NODE_ENV === 'production' }
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Strict CORS — only allow known origins
 
 // Strict CORS — only allow known origins
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
@@ -66,6 +84,29 @@ io.on('connection', (socket) => {
 
 // Health check — no sensitive data exposed
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
+// Google OAuth routes
+app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+app.get(
+  '/api/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: 'http://localhost:3000/login?code=auth_denied' }),
+  (req, res) => {
+    const token = jwt.sign(
+      { user: req.user },
+      process.env.JWT_SECRET || 'dev_jwt_secret_123',
+      { expiresIn: '7d' }
+    );
+    res.cookie('token', token, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+    res.redirect(`http://localhost:3000/auth/success?token=${token}&userId=${req.user.id}`);
+  }
+);
 
 // Generic error handler — no stack traces in response
 app.use((err, _req, res, _next) => {
