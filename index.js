@@ -97,15 +97,29 @@ app.get(
       process.env.JWT_SECRET || 'dev_jwt_secret_123',
       { expiresIn: '7d' }
     );
-    res.cookie('token', token, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+
+    const isProd = process.env.NODE_ENV === 'production';
+    const cookieOpts = {
+      httpOnly: false,           // client JS must read it for localStorage sync
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',  // cross-site on prod (Render→Vercel)
       path: '/',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    };
+
+    // Token cookie — readable by client JS so AuthProvider can pick it up
+    res.cookie('token', token, cookieOpts);
+
+    // Short-lived userId cookie — so the success page knows which user without
+    // exposing the full JWT in the URL
+    res.cookie('auth_uid', req.user.id, {
+      ...cookieOpts,
+      maxAge: 5 * 60 * 1000, // 5 minutes — just for the handoff
     });
+
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
-    res.redirect(`${clientUrl}/auth/success?token=${token}&userId=${req.user.id}`);
+    // No token or userId in the URL — cookies carry everything
+    res.redirect(`${clientUrl}/auth/success`);
   }
 );
 
