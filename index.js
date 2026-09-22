@@ -86,6 +86,16 @@ io.on('connection', (socket) => {
 // Health check — no sensitive data exposed
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
+// Root route — handles status and catches any OAuth codes redirected to /
+app.get('/', (req, res, next) => {
+  if (req.query && (req.query.code || req.query.error)) {
+    // If OAuth code/error landed on root /, forward to callback handler
+    return res.redirect(`/api/auth/google/callback${req.url.slice(req.path.length)}`);
+  }
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+  res.redirect(clientUrl);
+});
+
 // Google OAuth routes
 app.get('/api/auth/google', (req, res, next) => {
   const callbackURL = passport.getCallbackUrl(req);
