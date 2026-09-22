@@ -11,6 +11,7 @@ const passport = require('./config/passport');
 const jwt = require('jsonwebtoken');
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Session & Passport Initialization
 app.use(
