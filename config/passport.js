@@ -9,6 +9,18 @@ const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
+function getCallbackUrl(req) {
+  if (process.env.GOOGLE_CALLBACK_URL) {
+    return process.env.GOOGLE_CALLBACK_URL;
+  }
+  if (!req) {
+    return '/api/auth/google/callback';
+  }
+  const proto = (req.headers['x-forwarded-proto'] || req.protocol || 'http').split(',')[0].trim();
+  const host = (req.headers['x-forwarded-host'] || req.headers.host || 'localhost:5000').split(',')[0].trim();
+  return `${proto}://${host}/api/auth/google/callback`;
+}
+
 passport.use(
   new GoogleStrategy(
     {
@@ -95,5 +107,7 @@ passport.use(
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
+
+passport.getCallbackUrl = getCallbackUrl;
 
 module.exports = passport;

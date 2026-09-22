@@ -87,11 +87,23 @@ io.on('connection', (socket) => {
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
 // Google OAuth routes
-app.get('/api/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+app.get('/api/auth/google', (req, res, next) => {
+  const callbackURL = passport.getCallbackUrl(req);
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    callbackURL,
+  })(req, res, next);
+});
 
 app.get(
   '/api/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: `${process.env.CLIENT_URL || 'http://localhost:3000'}/login?code=auth_denied` }),
+  (req, res, next) => {
+    const callbackURL = passport.getCallbackUrl(req);
+    passport.authenticate('google', {
+      callbackURL,
+      failureRedirect: `${process.env.CLIENT_URL || 'http://localhost:3000'}/login?code=auth_denied`,
+    })(req, res, next);
+  },
   (req, res) => {
     const token = jwt.sign(
       { user: req.user },
